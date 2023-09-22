@@ -1,3 +1,5 @@
+package practice;
+
 public class NodeData { // CSV 파일에서 읽은 노드 정보를 이 클래스 변수에 담을거야
     private int id;
     private int nodeId;
@@ -6,7 +8,7 @@ public class NodeData { // CSV 파일에서 읽은 노드 정보를 이 클래�
 
   // 생성자에 대해 생각해보자 ..
 // 아래 코드가 살아있으면? ReadCSV의 생성자 매개변수에 값을 넘겨줘야 한다.
-//    public NodeData(int id, int nodeId, int nodeAttribute, String nodeName) {
+//    public practice.NodeData(int id, int nodeId, int nodeAttribute, String nodeName) {
 //      this.id = id;
 //      this.nodeId = nodeId;
 //      this.nodeAttribute = nodeAttribute;
@@ -41,7 +43,7 @@ public class NodeData { // CSV 파일에서 읽은 노드 정보를 이 클래�
 
     @Override
     public String toString() {
-      return "NodeData{" +
+      return "practice.NodeData{" +
           "id=" + id +
           ", nodeId=" + nodeId +
           ", nodeAttribute=" + nodeAttribute +

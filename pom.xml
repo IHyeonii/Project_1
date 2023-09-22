@@ -35,6 +35,16 @@
       <artifactId>gt-swing</artifactId>
       <version>${geotools.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-api</artifactId>
+      <version>30-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-cql</artifactId>
+      <version>30-SNAPSHOT</version>
+    </dependency>
   </dependencies>
   <repositories>
     <repository>

@@ -1,3 +1,5 @@
+package practice;
+
 import com.opencsv.CSVReader;
 
 import java.io.BufferedReader;
@@ -6,19 +8,16 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class ReadCSV_Node {
+public class ReadCSV_Link {
   public static void main(String[] args) throws Exception {
-    //파싱할 CSV파일 -> 콤마 기준으로 데이터를 구분한다.
-
-    File targetFile = new File("C:\\Users\\ihyeon\\Desktop\\Qbic_1stTask\\Node_test.csv");
+    File targetFile = new File("C:\\Users\\ihyeon\\Desktop\\Qbic_1stTask\\Link_test.csv");
 
     BufferedReader reader = new BufferedReader(new FileReader(targetFile));
 
     CSVReader openCSVReader = new CSVReader(reader);
 
-    String[] str; // 한줄씩 읽어서 String 변수에 담아
+    String[] str;
 
-    // 읽어온 변수를 담을 datas 생성
     ArrayList<NodeData> datas = new ArrayList<>();
 
     try {

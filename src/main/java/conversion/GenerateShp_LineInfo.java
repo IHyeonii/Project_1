@@ -1,12 +1,11 @@
 package conversion;
 
 import com.opencsv.CSVReader;
-import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
 
@@ -14,12 +13,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.List;
 
 public class GenerateShp_LineInfo {
   public static void main(String[] args) throws Exception {
 
-    File targetFile = new File("C:\\Users\\ihyeon\\Desktop\\Qbic_1stTask\\Link_test.csv");
+    File targetFile = new File("C:\\Users\\ihyeon\\Desktop\\Qbic_1stTask\\Link_epsg4162_20220510.csv");
     BufferedReader reader = null;
     CSVReader openCSVReader = null;
 
@@ -47,10 +45,10 @@ public class GenerateShp_LineInfo {
         String[] sep = result.split(",| ");
 
         // 처음과 끝 값만 추출: 경도(long) 위도(latti) 순서
-        linestring.setStlongtitue(Double.parseDouble(sep[0])); // 경도
-        linestring.setStlattitue(Double.parseDouble(sep[1])); // 위도
-        linestring.setEndlongtitue(Double.parseDouble(sep[sep.length-2])); //경도 끝값
-        linestring.setEndlattitue(Double.parseDouble(sep[sep.length-1])); //위도 끝값
+        linestring.setStLongitude(Double.parseDouble(sep[0])); // 경도
+        linestring.setStLatitude(Double.parseDouble(sep[1])); // 위도
+        linestring.setEndLongitude(Double.parseDouble(sep[sep.length-2])); //경도 끝값
+        linestring.setEndLatitude(Double.parseDouble(sep[sep.length-1])); //위도 끝값
 
         datas.add(linestring);
       }
@@ -73,7 +71,7 @@ public class GenerateShp_LineInfo {
       }
     }
 
-    System.out.println(datas); // Linestring 객체에 값 담기 성공
+//    System.out.println(datas); // Linestring 객체에 값 담기 성공
 
     // SHP 파일을 저장할 디렉토리 및 파일 이름 설정
     GeometryFactory geometryFactory = new GeometryFactory();
@@ -81,53 +79,56 @@ public class GenerateShp_LineInfo {
     // Linestring을 위한 SimpleFeatureType
     SimpleFeatureTypeBuilder typeBuilder = new SimpleFeatureTypeBuilder();
     typeBuilder.setName("Linestring");
-    typeBuilder.setCRS(null);
+    typeBuilder.setCRS(null); // 좌표계
 
-    // Feature 타입에 속성 추가
+    // Feature 타입에 속성 추가 -> dbf 파일 필드명
     typeBuilder.add("geometry", LineString.class);
-    typeBuilder.add("stlongtitue", Double.class);
-    typeBuilder.add("endlongtitue", Double.class);
+    typeBuilder.add("stLongitude", Double.class);
+    typeBuilder.add("stLatitude", Double.class);
+    typeBuilder.add("endLongitude", Double.class);
+    typeBuilder.add("endLatitude", Double.class);
 
-    // proj _ 좌표계 변환 라이브러리
-    typeBuilder.add("stlattitue", Double.class);
-    typeBuilder.add("endlattitue", Double.class);
-    // 좌표가
-
-    // Feature 타입 생성
-    SimpleFeatureType linestringType = typeBuilder.buildFeatureType();
 
     // Shapefile을 작성하기 위한 ShapefileDataStore 생성
-    File shapefileFile = new File("C:\\Users\\ihyeon\\Desktop\\Qbic_1stTask\\output_lineinfo.shp");
-    ShapefileDataStore dataStore = new ShapefileDataStore(shapefileFile.toURI().toURL());
-    dataStore.createSchema(linestringType);
+    File shpFile = new File("C:\\Users\\ihyeon\\Desktop\\Qbic_1stTask\\lineInfo.shp");
 
-    // Linestring 피처를 보유할 SimpleFeatureBuilder 생성
-    SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(linestringType);
-    List<SimpleFeature> features = new ArrayList<>();
+    SimpleFeatureType simpleFeatureType = typeBuilder.buildFeatureType();
+    ShapefileDataStore dataStore = new ShapefileDataStore(shpFile.toURI().toURL());
+    dataStore.createSchema(simpleFeatureType);
 
-    for (Linestring linestring : datas) {
-      // LineString 지오메트리를 생성합니다.
-      Coordinate[] coordinates = new Coordinate[]{
-          new Coordinate(linestring.getStlongtitue(), linestring.getStlattitue()),
-          new Coordinate(linestring.getEndlongtitue(), linestring.getEndlattitue())
-      };
-      LineString lineString = geometryFactory.createLineString(coordinates);
+    SimpleFeatureBuilder ddd = null;
 
-      featureBuilder.add(lineString);
-      featureBuilder.add(linestring.getStlongtitue());
-      featureBuilder.add(linestring.getEndlongtitue());
-      featureBuilder.add(linestring.getStlattitue());
-      featureBuilder.add(linestring.getEndlattitue());
-      SimpleFeature feature = featureBuilder.buildFeature(null);
+    // Linestring 피처 보유할 SimpleFeatureBuilder 생성
+//    SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(linestringType);
+//    List<SimpleFeature> features = new ArrayList<>();
 
-      features.add(feature);
-    }
+//    for (Linestring linestring : datas) {
+//      // LineString 지오메트리를 생성합니다.
+//      Coordinate[] coordinates = new Coordinate[]{
+//          new Coordinate(linestring.getStLongitude(), linestring.getStLatitude()),
+//          new Coordinate(linestring.getEndLongitude(), linestring.getEndLatitude())
+//      };
+//      LineString lineString = geometryFactory.createLineString(coordinates);
+//
+//      featureBuilder.add(lineString);
+//      featureBuilder.add(linestring.getStLongitude());
+//      featureBuilder.add(linestring.getStLatitude());
+//      featureBuilder.add(linestring.getEndLongitude());
+//      featureBuilder.add(linestring.getEndLatitude());
+//      SimpleFeature feature = featureBuilder.buildFeature(null);
+//
+//      features.add(feature);
+//    }
+
+    // 문제 - 읽기만 하고 쓰질 않아서 값이 담기지 않는다.
+    // 여기선 shp 확장자 하나만 생성해야 하는데,
 
 
-//        SimpleFeatureCollection collection = dataStore.getFeatureSource(dataStore.getTypeNames()[0]).getFeatures();
-//        collection.addAll();
+        SimpleFeatureCollection collection = dataStore.getFeatureSource(dataStore.getTypeNames()[0]).getFeatures();
+//        collection;
 
-    // 변경 내용 저장
+    // 변경 내용 저장`
     dataStore.dispose();
+
   }
 }

@@ -1,64 +1,53 @@
 package conversion;
 
 public class Linestring {
-  // 텍스트 문자를 String으로 읽어옴 , 스펠링, 표기법, 초기화
+  // 텍스트 문자를 String 으로 읽어옴
   // 근데 필요한 값은 결국 숫자임 -> 그럼 ????
 
-  private double stlongtitue = 0; // 경도
-  private double endlongtitue; // 경도 끝값
-  private double stlattitue; // 위도
-  private double endlattitue; // 위도 끝값
-  /**
-   * @return the stlongtitue
-   */
-  public double getStlongtitue() {
-    return stlongtitue;
+//  private double stlongitude = 0; // 왜 초기화 해야하지
+  private double stLongitude; // 경도
+  private double stLatitude; // 위도
+  private double endLongitude; // 경도 끝값
+  private double endLatitude; // 위도 끝값
+
+  public double getStLongitude() {
+    return stLongitude;
   }
-  /**
-   * @param stlongtitue the stlongtitue to set
-   */
-  public void setStlongtitue(double stlongtitue) {
-    this.stlongtitue = stlongtitue;
+
+  public void setStLongitude(double stLongitude) {
+    this.stLongitude = stLongitude;
   }
-  /**
-   * @return the endlongtitue
-   */
-  public double getEndlongtitue() {
-    return endlongtitue;
+
+  public double getStLatitude() {
+    return stLatitude;
   }
-  /**
-   * @param endlongtitue the endlongtitue to set
-   */
-  public void setEndlongtitue(double endlongtitue) {
-    this.endlongtitue = endlongtitue;
+
+  public void setStLatitude(double stLatitude) {
+    this.stLatitude = stLatitude;
   }
-  /**
-   * @return the stlattitue
-   */
-  public double getStlattitue() {
-    return stlattitue;
+
+  public double getEndLongitude() {
+    return endLongitude;
   }
-  /**
-   * @param stlattitue the stlattitue to set
-   */
-  public void setStlattitue(double stlattitue) {
-    this.stlattitue = stlattitue;
+
+  public void setEndLongitude(double endLongitude) {
+    this.endLongitude = endLongitude;
   }
-  /**
-   * @return the endlattitue
-   */
-  public double getEndlattitue() {
-    return endlattitue;
+
+  public double getEndLatitude() {
+    return endLatitude;
   }
-  /**
-   * @param endlattitue the endlattitue to set
-   */
-  public void setEndlattitue(double endlattitue) {
-    this.endlattitue = endlattitue;
+
+  public void setEndLatitude(double endLatitude) {
+    this.endLatitude = endLatitude;
   }
   @Override
   public String toString() {
-    return "ValueExtract [stlongtitue=" + stlongtitue + ", endlongtitue=" + endlongtitue + ", stlattitue="
-        + stlattitue + ", endlattitue=" + endlattitue + "]";
+    return "Linestring{" +
+        "stLongitude=" + stLongitude +
+        ", stLatitude=" + stLatitude +
+        ", endLongitude=" + endLongitude +
+        ", endLatitude=" + endLatitude +
+        '}';
   }
 }
