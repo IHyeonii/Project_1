@@ -46,6 +46,10 @@ public class CsvToShapeFile {
         DataUtilities.createType( // DataUtilities 사용
             "Location",
             "the_geom:Point:srid=4326,"
+                + // <- the geometry attribute: Point type
+                "name:String,"
+                + // <- a String attribute
+                "number:Integer" // a number attribute
         );
     System.out.println("TYPE:" + TYPE);
 
