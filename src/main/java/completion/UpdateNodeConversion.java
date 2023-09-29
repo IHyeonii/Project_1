@@ -30,8 +30,8 @@ import java.util.Map;
 public class UpdateNodeConversion {
   public static void main(String[] args) throws Exception {
 
-    File file = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\testFile\\nodeTest1.csv");
-    File linkFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\testFile\\linkTest1.csv");
+    File file = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Node_test.csv");
+    File linkFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Link_test.csv");
 
     // 1. FeatureType 생성
     // SimpleFeatureType -> CSV 파일에서 읽어온 데이터 속성과 구조 정의
@@ -90,15 +90,6 @@ public class UpdateNodeConversion {
         // 처음과 끝 값만 추출: 경도(long) 위도(latti) 순서
         String[] sep = result.split(",");
 
-        // 여길 반복해야돼 -> 아니야 ,,,ㅋ
-//        for (String number : sep) {
-//          String[] coords = number.trim().split(" "); // 공백으로 구분
-//          Coordinate startCoord = new Coordinate(Double.parseDouble(coords[0]), Double.parseDouble(coords[1]));
-//          Coordinate endCoord = new Coordinate(Double.parseDouble(coords[coords.length-2]), Double.parseDouble(coords[coords.length-1]));
-//
-//          map.put(stNode, startCoord);
-//          map.put(endNode, endCoord);
-//        }
         String[] arrStartNode = sep[0].trim().split(" ");
         String[] arrEndNode = sep[sep.length - 1].trim().split(" ");
         Coordinate startCoord = new Coordinate(Double.parseDouble(arrStartNode[0]), Double.parseDouble(arrStartNode[1]));
@@ -117,19 +108,12 @@ public class UpdateNodeConversion {
 
         Integer nodeNumber = idx + nodeid;
 
-        Coordinate coor = map.get(nodeNumber); // double로 ....
-        Point point = geometryFactory.createPoint(coor);// 이게 없으면 POINT EMPTY
+        Coordinate coor = map.get(nodeNumber);
+        Point point = geometryFactory.createPoint(coor);
 
-//          if (nodeNumber ==  stNode) {
-//            point.getCoordinate().setCoordinate(map.get(stNode));
-//            point = geometryFactory.createPoint(map.get(stNode));
-//          } else if (nodeNumber == endNode) {
-//            point = geometryFactory.createPoint(map.get(endNode));
-//          }
-        System.out.println("point" + point);
+//        System.out.println("point" + point);
 
         // featureBuilder 객체를 사용하여 point 객체랑 name, number -> feature에 추가
-
         featureBuilder.add(point); // 이 위치가....ㅋ
         featureBuilder.add(idx);
         featureBuilder.add(nodeid);
@@ -199,7 +183,7 @@ public class UpdateNodeConversion {
 
   // 5. output shapefile
   private static File getNewShapeFile(File csvFile) { //getNewShapeFile 호출될 때 매개변수로 전달되는 파일
-    File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\testFile\\testOutput1.shp");
+    File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Node_test.shp");
 
     // 3. 만약 새로운 파일이 원본 CSV 파일과 동일한 경우 오류를 출력하고 프로그램을 종료합니다.
     if (newFile.equals(csvFile)) {

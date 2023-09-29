@@ -31,7 +31,7 @@ import java.util.Map;
 public class ConvertLinkFile {
   public static void main(String[] args) throws Exception {
 
-    File file = new File("불러올 파일 경로 \\ 해당파일.csv");
+    File file = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Link_test.csv");
 
     // 1. FeatureType 생성
     // SimpleFeatureType 생성 =  CSV 파일에서 읽어온 데이터를 설명, 속성 유형과 구조 정의
@@ -200,7 +200,7 @@ public class ConvertLinkFile {
 
   // 5. output shapefile
   private static File getNewShapeFile(File csvFile) { //getNewShapeFile 호출될 때 매개변수로 전달되는 파일
-    File newFile = new File("저장 될 파일 경로 \\ 출력 될 파일명.shp");
+    File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Link_test.shp");
 
     // 3. 만약 새로운 파일이 원본 CSV 파일과 동일한 경우 오류를 출력하고 프로그램을 종료합니다.
     if (newFile.equals(csvFile)) {
