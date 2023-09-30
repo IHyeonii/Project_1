@@ -30,15 +30,15 @@ import java.util.Map;
 public class ConvertNodeFile {
   public static void main(String[] args) throws Exception {
 
-    File file = new File("노드.csv");
-    File linkFile = new File("링크.csv");
+    File file = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Node_test.csv");
+    File linkFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Link_test.csv");
 
     // 1. FeatureType 생성
     // SimpleFeatureType 생성 =  CSV 파일에서 읽어온 데이터를 설명, 속성 유형과 구조 정의
     final SimpleFeatureType TYPE =
         DataUtilities.createType( // DataUtilities 사용
             "NodeFile",
-            "the_geom:Point:srid=4326,"
+            "the_geom:Point:srid=4162,"
                 + // <- the geometry attribute
                 "idxname:Integer,"
                 + // <-  attribute

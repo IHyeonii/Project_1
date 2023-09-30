@@ -38,7 +38,7 @@ public class UpdateNodeConversion {
     final SimpleFeatureType TYPE =
         DataUtilities.createType( // DataUtilities 사용
             "NodeFile",
-            "the_geom:Point:srid=4326,"
+            "the_geom:Point:srid=4162,"
                 + // <- the geometry attribute
                 "idx:Integer,"
                 + // <-  attribute

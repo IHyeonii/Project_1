@@ -38,7 +38,7 @@ public class ConvertLinkFile {
     final SimpleFeatureType TYPE =
         DataUtilities.createType( // DataUtilities 사용
             "LinkFile",
-            "the_geom:MultiLineString:srid=4326,"
+            "the_geom:MultiLineString:srid=4162,"
                 + // <- the geometry attribute: LineString type
                 "idxname:Integer,"
                 + // <-  attribute
