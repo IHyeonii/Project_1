@@ -1,22 +1,26 @@
 package completion;
 
 import com.opencsv.CSVReader;
+import org.geotools.api.data.DataStore;
 import org.geotools.api.data.SimpleFeatureSource;
 import org.geotools.api.data.SimpleFeatureStore;
 import org.geotools.api.data.Transaction;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.collection.ListFeatureCollection;
-import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.JTSFactoryFinder;
+import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,18 +31,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ConvertNodeFile {
+public class ChangeCoordinateNode {
   public static void main(String[] args) throws Exception {
 
-    File file = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Node_test.csv");
-    File linkFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Link_test.csv");
+    System.setProperty("org.geotools.referencing.forceXY", "true");
+
+    File file = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Node_test2.csv");
+    File linkFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Link_test2.csv");
 
     // 1. FeatureType 생성
     // SimpleFeatureType 생성 =  CSV 파일에서 읽어온 데이터를 설명, 속성 유형과 구조 정의
     final SimpleFeatureType TYPE =
         DataUtilities.createType( // DataUtilities 사용
             "NodeFile",
-            "the_geom:Point:srid=4162,"
+            "the_geom:Point:srid=5179,"
                 + // <- the geometry attribute
                 "idxname:Integer,"
                 + // <-  attribute
@@ -51,7 +57,9 @@ public class ConvertNodeFile {
     List<SimpleFeature> features = new ArrayList<>();
 
     // 2-1. 새로운 포인트 생성을 위한 GeometryFactory 사용
-    // GeometryFactory는 각 feature의 지오메트리 속성을 생성하는 데 사용
+    /**
+     * GeometryFactory -> 각 feature의 지오메트리 속성을 생성하는 데 사용
+     */
     GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
 
     // 2-2. SimpleFeatureBuilder 사용하여 Features(SimpleFeature 객체) 생성
@@ -71,12 +79,6 @@ public class ConvertNodeFile {
       String[] line = csvReader.readNext();
       String[] linkLine = linkCsvReader.readNext();
 
-      /*
-      * 1. while문을 두 번 따로 돌아야 한다. -> 각각 별개의 파일이라 하나의 while 문에서 돌면 ..?
-      * 2. 링크를 먼저 읽어서 노드 형상을 얻는다.
-      * 3. 노드 형상을 사용할 수 있도록 while 문 밖에 선언 된 자료구조에 담는다 (ex. Map)
-      * 4. 노드를 읽으면서 노드의 키값 == 링크의 키값 ; Point 객체에 담아서 add 한다.
-      * */
       while ((linkLine = linkCsvReader.readNext()) != null) {  // 링크 먼저 읽기
         Integer idxname = Integer.parseInt(linkLine[0]);
         Integer stndid = Integer.parseInt(linkLine[2]);
@@ -91,19 +93,16 @@ public class ConvertNodeFile {
         int end = lineString.indexOf(')');
         String result = lineString.substring(start+1, end); // 괄호 안의 숫자만 출력
 
-        String[] sep = result.split(",| ");
+        String[] sep = result.split(",");
 
         // 처음과 끝 값만 추출: 경도(long) 위도(latti) 순서
-        double stLongitude = Double.parseDouble(sep[0]); // 경도
-        double stLatitude = Double.parseDouble(sep[1]); // 위도
-        double endLongitude = Double.parseDouble(sep[sep.length-2]); // 경도 끝값
-        double endLatitude = Double.parseDouble(sep[sep.length-1]); // 위도 끝값
-
-        Coordinate startCoord = new Coordinate(stLongitude, stLatitude);
-        Coordinate endCoord = new Coordinate(endLongitude, endLatitude);
-
+        String[] arrStartNode = sep[0].trim().split(" ");
+        String[] arrEndNode = sep[sep.length - 1].trim().split(" ");
+        Coordinate startCoord = new Coordinate(Double.parseDouble(arrStartNode[0]), Double.parseDouble(arrStartNode[1]));
+        Coordinate endCoord = new Coordinate(Double.parseDouble(arrEndNode[0]), Double.parseDouble(arrEndNode[1]));
         map.put(stNode, startCoord);
         map.put(endNode, endCoord);
+      }
 
         /**
          * 노드 정보 추출하기
@@ -114,22 +113,33 @@ public class ConvertNodeFile {
           Integer nodeattr = Integer.parseInt(line[2]);
           String ndname = line[3];
 
-          Integer NodeNumber = idx + nodeid;
+          Integer nodeNumber = idx + nodeid;
 
-          Point point = geometryFactory.createPoint();
+          Coordinate coor = map.get(nodeNumber);
 
-          if (NodeNumber ==  stNode) {
-            point = geometryFactory.createPoint(map.put(stNode, startCoord));
-          } else if (NodeNumber == endNode) {
-            point = geometryFactory.createPoint(map.put(endNode, endCoord));
-          }
+          Geometry point = geometryFactory.createPoint(coor);
+
+          // 좌표계 변환
+          CoordinateReferenceSystem sourceCrs = CRS.decode("EPSG:4162");
+          CoordinateReferenceSystem targetCrs = CRS.decode("EPSG:5179");
+
+          // 변환수식 5179 -> x y aks
+          // prj 도
+
+          boolean lenient = true;
+
+          MathTransform transform = CRS.findMathTransform(sourceCrs, targetCrs, lenient);
+          Geometry transFormedPoint = JTS.transform(point, transform);
+
+          System.out.println("좌표변경 전(EPSG:4162) Point = " + point);
+          System.out.println("좌표변경 후(EPSG:5179) Point = " + transFormedPoint);
 
           // featureBuilder 객체를 사용하여 feature에 추가
-          featureBuilder.add(idxname);
+          featureBuilder.add(transFormedPoint);
+          featureBuilder.add(idx);
           featureBuilder.add(nodeid);
           featureBuilder.add(nodeattr);
           featureBuilder.add(ndname);
-          featureBuilder.add(point);
 
           // featureBuilder 사용하여 SimpleFeature 객체 생성 -> 여기에 모든 데이터가 포함 됨
           SimpleFeature feature = featureBuilder.buildFeature(null);
@@ -137,7 +147,6 @@ public class ConvertNodeFile {
           // 생성한 feature를 features 리스트에 추가
           features.add(feature);
         }
-      }
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -153,8 +162,7 @@ public class ConvertNodeFile {
     params.put("url", newFile.toURI().toURL());
     params.put("create spatial index", Boolean.TRUE);
 
-    ShapefileDataStore newDataStore =
-        (ShapefileDataStore) dataStoreFactory.createNewDataStore(params);
+    DataStore newDataStore = dataStoreFactory.createNewDataStore(params);
 
     // 3-2. ShapeFile 설정 위한 createSchema(SimpleFeatureType) 메서드 사용
     newDataStore.createSchema(TYPE); // TYPE -> 파일 내용 설명하는 템플릿으로 사용
@@ -190,7 +198,7 @@ public class ConvertNodeFile {
 
   // 5. output shapefile
   private static File getNewShapeFile(File csvFile) { //getNewShapeFile 호출될 때 매개변수로 전달되는 파일
-    File newFile = new File("");
+    File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\ConvertNode2.shp");
 
     // 3. 만약 새로운 파일이 원본 CSV 파일과 동일한 경우 오류를 출력하고 프로그램을 종료합니다.
     if (newFile.equals(csvFile)) {
