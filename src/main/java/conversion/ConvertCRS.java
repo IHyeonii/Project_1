@@ -1,4 +1,4 @@
-package completion;
+package conversion;
 
 import org.geotools.api.data.*;
 import org.geotools.api.feature.simple.SimpleFeature;
