@@ -29,7 +29,6 @@ import java.util.Map;
 
 public class UpdateNodeConversion {
   public static void main(String[] args) throws Exception {
-
     File file = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Node_test.csv");
     File linkFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Link_test.csv");
 
@@ -110,8 +109,6 @@ public class UpdateNodeConversion {
 
         Coordinate coor = map.get(nodeNumber);
         Point point = geometryFactory.createPoint(coor);
-
-//        System.out.println("point" + point);
 
         // featureBuilder 객체를 사용하여 point 객체랑 name, number -> feature에 추가
         featureBuilder.add(point); // 이 위치가....ㅋ

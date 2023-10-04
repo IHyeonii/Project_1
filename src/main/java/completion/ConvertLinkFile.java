@@ -30,11 +30,10 @@ import java.util.Map;
 
 public class ConvertLinkFile {
   public static void main(String[] args) throws Exception {
-
     File file = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Link_test.csv");
 
     // 1. FeatureType 생성
-    // SimpleFeatureType 생성 =  CSV 파일에서 읽어온 데이터를 설명, 속성 유형과 구조 정의
+    // SimpleFeatureType 생성 =  CSV 파일에서 읽어온 데이터를 설명, 속성과 구조 정의
     final SimpleFeatureType TYPE =
         DataUtilities.createType( // DataUtilities 사용
             "LinkFile",

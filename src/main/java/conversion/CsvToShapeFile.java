@@ -83,8 +83,8 @@ public class CsvToShapeFile {
         // 콤마 또는 공백을 구분자로 분리
         String[] tokens = result.split(",| ");
 
-        System.out.println(tokens[0]);
-        System.out.println(tokens[1]);
+//        System.out.println(tokens[0]);
+//        System.out.println(tokens[1]);
 
         // cvs 파일 각 세로 값들
         double stLongitude = Double.parseDouble(tokens[0]); // 경도
@@ -114,8 +114,8 @@ public class CsvToShapeFile {
       e.printStackTrace();
     }
 
-    // 3. Create a shapefile From a FeatureCollection
-    // getNewShapeFile 메서드 호츌
+//     3. Create a shapefile From a FeatureCollection
+//     getNewShapeFile 메서드 호츌
     File newFile = getNewShapeFile(file); // 읽어온 csv 파일 가져와서
 
     // 3-1.DataStoreFactory -> 원하는 공간 인덱스를 표시하는 매개변수와 함께 사용해야 함

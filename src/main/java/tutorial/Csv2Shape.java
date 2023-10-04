@@ -42,7 +42,7 @@ public class Csv2Shape {
     }
 
     // 1. FeatureType 생성
-    // To describe the data that we are importing from the CSV file and writing to a shapefile.
+    // SimpleFeatureType =  CSV 파일에서 읽어온 데이터를 설명, 유형과 구조 정의
     final SimpleFeatureType TYPE =
         DataUtilities.createType( // DataUtilities 사용
             "Link",
@@ -53,8 +53,6 @@ public class Csv2Shape {
                 "number:Integer" // a number attribute
         );
     System.out.println("TYPE:" + TYPE);
-    // QuickStart 실행 -> csv파일 선택하면
-    // SimpleFeatureTypeImpl 위치 식별하면 -> Feature(the_geom:the_geom,name:name,number:number) 확장 됨
 
     // 2. Features 생성 -> Point, Line(점들의 연결), Polygon, Attribute..
     // 이제 CSV 파일을 읽고 각 줄을 파싱하여 데이터 추출하기
@@ -73,7 +71,7 @@ public class Csv2Shape {
       System.out.println("Header: " + line);
 
       for (line = reader.readLine(); line != null; line = reader.readLine()) {
-        if (line.trim().length() > 0) { // skip blank lines -> isEmpty로 해보기
+        if (line.trim().length() > 0) { // skip blank lines
           String[] tokens = line.split("\\,"); // 쉼표(,)로 구분된 데이터 파싱
 
           // cvs 파일 각 세로 값들
@@ -99,7 +97,6 @@ public class Csv2Shape {
         }
       }
     }
-
     // 3. Create a shapefile From a FeatureCollection
     // getNewShapeFile 메서드 호츌
     File newFile = getNewShapeFile(file); // 39번 라인 -> 출력할 파일(csv) name 가져오기

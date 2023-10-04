@@ -33,7 +33,6 @@ import java.util.Map;
 
 public class ChangeCoordinateNode {
   public static void main(String[] args) throws Exception {
-
     System.setProperty("org.geotools.referencing.forceXY", "true");
 
     File file = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Node_test2.csv");
@@ -123,9 +122,6 @@ public class ChangeCoordinateNode {
           CoordinateReferenceSystem sourceCrs = CRS.decode("EPSG:4162");
           CoordinateReferenceSystem targetCrs = CRS.decode("EPSG:5179");
 
-          // 변환수식 5179 -> x y aks
-          // prj 도
-
           boolean lenient = true;
 
           MathTransform transform = CRS.findMathTransform(sourceCrs, targetCrs, lenient);
@@ -195,7 +191,6 @@ public class ChangeCoordinateNode {
       System.exit(1);
     }
   }
-
   // 5. output shapefile
   private static File getNewShapeFile(File csvFile) { //getNewShapeFile 호출될 때 매개변수로 전달되는 파일
     File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\ConvertNode2.shp");
