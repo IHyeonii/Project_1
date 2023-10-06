@@ -43,7 +43,7 @@ public class ChangeCoordinateLink {
     final SimpleFeatureType TYPE =
         DataUtilities.createType( // DataUtilities 사용
             "LinkFile",
-            "the_geom:MultiLineString:srid=5179,"
+            "the_geom:LineString:srid=5179,"
                 + // <- the geometry attribute: LineString type
                 "idxname:Integer,"
                 + // <-  attribute
