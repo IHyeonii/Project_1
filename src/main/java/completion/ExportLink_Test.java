@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
-public class ExportLink_Test {
+public class ExportLink_Test { // 병합정보 추출 완료, 이제 방향 정해서 통합링크 구성하기
   public static void test(String message, Map<String, ArrayList<SimpleFeature>> hashMap) {
     System.out.println(message + ":" + hashMap.size());
   }
@@ -103,12 +103,23 @@ public class ExportLink_Test {
           }
         }
       }
+//      int cnt = 0;
+//      int total = 0;
+//      for(String key : duplicateNode.keySet()) {
+//        total++;
+//        List<Long> arr = duplicateNode.get(key);
+//        if(arr.size() != 2){
+//          cnt++;
+//          System.out.println(key + "," + arr.toString());
+//        }
+//      }
+//      System.out.println(cnt + ", " + total);
       iterator.close();
 
       for (Map.Entry<String, ArrayList<Long>> entrySet : duplicateNode.entrySet()) {
         if (entrySet.getValue().size() != 2) {
           continue;
-        }
+        } // 이 코드 없으면 Index 1 out of bounds for length 1
 
         String key = entrySet.getKey(); // 키 = 도곽의 좌표(포인트)
         ArrayList<Long> nodeIds = entrySet.getValue(); // 값: 도과 노드id1, 노드id2
