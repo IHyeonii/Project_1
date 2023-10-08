@@ -1,6 +1,7 @@
-package completion;
+package output;
 
 import com.opencsv.CSVReader;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.geotools.api.data.DataStore;
 import org.geotools.api.data.SimpleFeatureSource;
 import org.geotools.api.data.SimpleFeatureStore;
@@ -21,6 +22,7 @@ import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -31,23 +33,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ChangeCoordinateNode {
+public class ChangeCoordinateLink {
   public static void main(String[] args) throws Exception {
     System.setProperty("org.geotools.referencing.forceXY", "true");
 
-    File file = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Node_test2.csv");
-    File linkFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Link_test2.csv");
+    File file = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\Link_test2.csv");
 
     // 1. FeatureType 생성
-    // SimpleFeatureType 생성 =  CSV 파일에서 읽어온 데이터를 설명, 속성 유형과 구조 정의
     final SimpleFeatureType TYPE =
         DataUtilities.createType( // DataUtilities 사용
-            "NodeFile",
-            "the_geom:Point:srid=5179,"
-                + // <- the geometry attribute
+            "LinkFile",
+            "the_geom:LineString:srid=5179,"
+                + // <- the geometry attribute: LineString type
                 "idxname:Integer,"
                 + // <-  attribute
-                "nodeid:Integer," + "nodeattr:Integer," + "ndname:String"
+                "linkid:Integer," + "stndid:Integer," + "edndid:Integer," + "linkcate:Integer," + "roadcate:Integer,"
+                + "roadno:String," + "lane:Integer," + "linkfacil:Integer," + "ks1:String," + "ks2:String,"
+                + "oneway:Integer," + "speedlh:Integer," + "length:Integer"
         );
     System.out.println("TYPE:" + TYPE);
 
@@ -65,84 +67,88 @@ public class ChangeCoordinateNode {
     SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(TYPE);
 
     try {
-      BufferedReader reader = new BufferedReader(new FileReader(file));
-      CSVReader csvReader = new CSVReader(reader); // 노드파일 읽기
-
-      BufferedReader linkReader = new BufferedReader(new FileReader(linkFile));
-      CSVReader linkCsvReader = new CSVReader(linkReader); // 링크파일 읽기
-
-      // 링크에서 추출한 노드 형상 담을 자료구조
-      Map<Integer, Coordinate> map = new HashMap<>();
+      BufferedReader linkReader = new BufferedReader(new FileReader(file));
+      CSVReader csvReader = new CSVReader(linkReader); // 링크파일 읽기
 
       /* First line of the data file is the header */
       String[] line = csvReader.readNext();
-      String[] linkLine = linkCsvReader.readNext();
 
-      while ((linkLine = linkCsvReader.readNext()) != null) {  // 링크 먼저 읽기
-        Integer idxname = Integer.parseInt(linkLine[0]);
-        Integer stndid = Integer.parseInt(linkLine[2]);
-        Integer edndid = Integer.parseInt(linkLine[3]);
+      while ((line = csvReader.readNext()) != null) {
+        Integer idxname = Integer.parseInt(line[0]);
+        Integer linkid = Integer.parseInt(line[1]);
+        Integer stndid = Integer.parseInt(line[2]);
+        Integer edndid = Integer.parseInt(line[3]);
+        Integer linkcate = Integer.parseInt(line[4]);
+        Integer roadcate = Integer.parseInt(line[5]);
+        String roadno = line[6];
+        Integer lane = Integer.parseInt(line[7]);
+        Integer linkfacil = Integer.parseInt(line[8]);
+        String ks1 = line[9];
+        String ks2 = line[10];
+        String oneway = line[11];
+        int oneway2 = NumberUtils.toInt(oneway);
+        String speedlh = line[12];
+        int speedlh2 =  NumberUtils.toInt(speedlh);
+        String length = line[13];
+        int length2 = NumberUtils.toInt(length);
 
-        Integer stNode = idxname+stndid;
-        Integer endNode = idxname+edndid;
-
-        // Link에서 형상만 추출
-        String lineString = linkLine[14];
+        String lineString = line[14];
         int start = lineString.indexOf('(');
         int end = lineString.indexOf(')');
         String result = lineString.substring(start+1, end); // 괄호 안의 숫자만 출력
 
-        String[] sep = result.split(",");
+        // 쪼갰는데 담질못해 , 객체를 만들어서 담아라
+        List<Coordinate> arr = new ArrayList<>();
+        // 콤마 또는 공백을 구분자로 분리
+        String[] value = result.split(",");
 
-        // 처음과 끝 값만 추출: 경도(long) 위도(latti) 순서
-        String[] arrStartNode = sep[0].trim().split(" ");
-        String[] arrEndNode = sep[sep.length - 1].trim().split(" ");
-        Coordinate startCoord = new Coordinate(Double.parseDouble(arrStartNode[0]), Double.parseDouble(arrStartNode[1]));
-        Coordinate endCoord = new Coordinate(Double.parseDouble(arrEndNode[0]), Double.parseDouble(arrEndNode[1]));
-        map.put(stNode, startCoord);
-        map.put(endNode, endCoord);
-      }
-
-        /**
-         * 노드 정보 추출하기
-         * */
-        while ((line = csvReader.readNext()) != null) {
-          Integer idx = Integer.parseInt(line[0]);
-          Integer nodeid = Integer.parseInt(line[1]);
-          Integer nodeattr = Integer.parseInt(line[2]);
-          String ndname = line[3];
-
-          Integer nodeNumber = idx + nodeid;
-
-          Coordinate coor = map.get(nodeNumber);
-
-          Geometry point = geometryFactory.createPoint(coor);
-
-          // 좌표계 변환
-          CoordinateReferenceSystem sourceCrs = CRS.decode("EPSG:4162");
-          CoordinateReferenceSystem targetCrs = CRS.decode("EPSG:5179");
-
-          boolean lenient = true;
-
-          MathTransform transform = CRS.findMathTransform(sourceCrs, targetCrs, lenient);
-          Geometry transFormedPoint = JTS.transform(point, transform);
-
-          System.out.println("좌표변경 전(EPSG:4162) Point = " + point);
-          System.out.println("좌표변경 후(EPSG:5179) Point = " + transFormedPoint);
-
-          // featureBuilder 객체를 사용하여 feature에 추가
-          featureBuilder.add(transFormedPoint);
-          featureBuilder.add(idx);
-          featureBuilder.add(nodeid);
-          featureBuilder.add(nodeattr);
-          featureBuilder.add(ndname);
-
-          // featureBuilder 사용하여 SimpleFeature 객체 생성 -> 여기에 모든 데이터가 포함 됨
-          SimpleFeature feature = featureBuilder.buildFeature(null);
-
-          // 생성한 feature를 features 리스트에 추가
-          features.add(feature);
+        for (String number : value) {
+          String[] strCoord = number.trim().split(" ");
+          Coordinate coord = new Coordinate(Double.parseDouble(strCoord[0]), Double.parseDouble(strCoord[1]));
+          arr.add(coord);
         }
+
+        // LineString 생성
+        Coordinate[] points = new Coordinate[arr.size()];
+        for (int i = 0; i < arr.size(); i++) {
+          points[i] = arr.get(i);
+        }
+        LineString lineInfo = geometryFactory.createLineString(points);
+
+        // 좌표계 변환
+        CoordinateReferenceSystem sourceCrs = CRS.decode("EPSG:4162");
+        CoordinateReferenceSystem targetCrs = CRS.decode("EPSG:5179");
+
+        boolean lenient = true;
+
+        MathTransform transform = CRS.findMathTransform(sourceCrs, targetCrs, lenient);
+        Geometry transFormedPoint = JTS.transform(lineInfo, transform);
+
+        System.out.println("좌표변경 전(EPSG:4162) = " + lineInfo);
+        System.out.println("좌표변경 후(EPSG:5179) = " + transFormedPoint);
+
+        featureBuilder.add(transFormedPoint);
+        featureBuilder.add(idxname);
+        featureBuilder.add(linkid);
+        featureBuilder.add(stndid);
+        featureBuilder.add(edndid);
+        featureBuilder.add(linkcate);
+        featureBuilder.add(roadcate);
+        featureBuilder.add(roadno);
+        featureBuilder.add(lane);
+        featureBuilder.add(linkfacil);
+        featureBuilder.add(ks1);
+        featureBuilder.add(ks2);
+        featureBuilder.add(oneway2);
+        featureBuilder.add(speedlh2);
+        featureBuilder.add(length2);
+
+        // featureBuilder 사용하여 SimpleFeature 객체 생성 -> 여기에 모든 데이터가 포함 됨
+        SimpleFeature feature = featureBuilder.buildFeature(null);
+
+        // 생성한 feature를 features 리스트에 추가
+        features.add(feature);
+      }
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -191,9 +197,10 @@ public class ChangeCoordinateNode {
       System.exit(1);
     }
   }
+
   // 5. output shapefile
   private static File getNewShapeFile(File csvFile) { //getNewShapeFile 호출될 때 매개변수로 전달되는 파일
-    File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\ConvertNode2.shp");
+    File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\ConvertLink2.shp");
 
     // 3. 만약 새로운 파일이 원본 CSV 파일과 동일한 경우 오류를 출력하고 프로그램을 종료합니다.
     if (newFile.equals(csvFile)) {

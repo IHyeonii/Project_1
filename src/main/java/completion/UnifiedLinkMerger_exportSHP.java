@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class UnifiedLinkMerger { // 병합정보 추출 완료, 이제 방향 정해서 통합링크 구성하기
+public class UnifiedLinkMerger_exportSHP { // 병합정보 추출 완료, 이제 방향 정해서 통합링크 구성하기
   public static void main(String[] args) throws Exception {
     File nodeFile = new File("C:\\Users\\ihyeon\\Downloads\\ConvertCoord2\\ConvertCoord.shp");
     File linkFile = new File("C:\\Users\\ihyeon\\Downloads\\ConvertCoord2\\ConvertCoord2.shp");
@@ -165,22 +165,9 @@ public class UnifiedLinkMerger { // 병합정보 추출 완료, 이제 방향 �
 
         linkInfo.put(linkId, arr);
       }
-      linkIterator.close();
 
-      final SimpleFeatureType TYPE =
-          DataUtilities.createType( // DataUtilities 사용
-              "newLinkFile",
-              "the_geom:LineString:srid=5179,"
-//                  +
-//                  "idxname:Integer," + "linkid:Integer," + "fromNode:Integer," + "toNode:Integer"
-          );
-      System.out.println("TYPE:" + TYPE);
-
-      List<SimpleFeature> features = new ArrayList<>();
       GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
       ArrayList<LineString> lineStringsInfo = new ArrayList<>();
-
-      SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(TYPE);
 
       // 도곽 노드와 연결된 "링크를 병합"
       for (String key : duplicateLink.keySet()) {
@@ -285,12 +272,70 @@ public class UnifiedLinkMerger { // 병합정보 추출 완료, 이제 방향 �
           lineStringsInfo.add(reverseLink2);
         }
 
-        featureBuilder.add(lineStringsInfo);
-        SimpleFeature feature = featureBuilder.buildFeature(null);
-        features.add(feature);
+//      for (int i = 0; i < lineStringsInfo.size(); i++) {
+//        System.out.println(lineStringsInfo.get(i));
       }
+//      System.out.println("size: " + lineStringsInfo.size());
+      } catch(IOException e){
+        throw new RuntimeException(e);
+      }
+//      makeLink();
+    }
+
+    static void makeLink (Map < String, ArrayList < SimpleFeature >> hashMap, File linkFile) throws Exception {
+
+      // 기존 노드. 링크 파일에서 필요한 정보 가져오고
+      // 병합대상 가져와서
+      // 새로운 shp 생성
+      final SimpleFeatureType TYPE =
+          DataUtilities.createType(
+              "newLinkFile",
+              "the_geom:LineString:srid=5179,"
+                  + "name:String"
+          );
+      System.out.println("TYPE:" + TYPE);
+
+      List<SimpleFeature> features = new ArrayList<>();
+
+      for (Map.Entry<String, ArrayList<SimpleFeature>> entrySet : hashMap.entrySet()) {
+        ArrayList<SimpleFeature> value = entrySet.getValue();
+        SimpleFeature featureA = value.get(0); // 링크 1번
+        SimpleFeature featureB = value.get(1); // 링크 2번
+
+        // 링크 A의 좌표정보
+        MultiLineString multiLineString = (MultiLineString) featureA.getAttribute(0);
+        LineString lineString1 = (LineString) multiLineString.getGeometryN(0);
+//      System.out.println(Arrays.toString(lineString1.getCoordinates())); // Coordinate는 하나만 출력
+
+        // 링크 B도..
+        MultiLineString multiLineString2 = (MultiLineString) featureB.getAttribute(0);
+        LineString lineString2 = (LineString) multiLineString2.getGeometryN(0);
+//      System.out.println(Arrays.toString(lineString1.getCoordinates()));
+
+        //
+        Point startPoint = lineString1.getStartPoint();
+        Point endPoint = lineString2.getEndPoint();
+
+        GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+
+        Coordinate[] points = new Coordinate[2];
+        points[0] = new Coordinate(startPoint.getX(), startPoint.getY());
+        points[1] = new Coordinate(endPoint.getX(), endPoint.getY());
+        LineString lineString = geometryFactory.createLineString(points);
+
+        Integer length = (Integer) featureA.getAttribute("length");
+//      System.out.println(length);
+        // 양쪽좌표를 갖고, 두개를 합친다
+        SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(TYPE);
+        featureBuilder.add(lineString);
+        featureBuilder.add("line");
+
+        SimpleFeature feature = featureBuilder.buildFeature(null);
+        features.add(feature); // 합친걸 여기다 add해
+      }
+
       // 저장
-      File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\output\\output3.shp");
+      File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\output\\output1.shp");
 
       ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
 
@@ -300,10 +345,8 @@ public class UnifiedLinkMerger { // 병합정보 추출 완료, 이제 방향 �
 
       DataStore newDataStore = dataStoreFactory.createNewDataStore(params);
 
-      // 3-2. ShapeFile 설정 위한 createSchema(SimpleFeatureType) 메서드 사용
       newDataStore.createSchema(TYPE); // TYPE -> 파일 내용 설명하는 템플릿으로 사용
 
-      // 4. ShapeFile에 feature data 작성
       Transaction transaction = new DefaultTransaction("create");
 
       String typeName = newDataStore.getTypeNames()[0];
@@ -330,13 +373,6 @@ public class UnifiedLinkMerger { // 병합정보 추출 완료, 이제 방향 �
         System.out.println(typeName + " does not support read/write access");
         System.exit(1);
       }
-//      for (int i = 0; i < lineStringsInfo.size(); i++) {
-//        System.out.println(lineStringsInfo.get(i));
-//      }
-//      System.out.println("size: " + lineStringsInfo.size());
-      } catch (IOException e) {
-      throw new RuntimeException(e);
     }
-  }
 }
 

@@ -16,13 +16,12 @@ import org.locationtech.jts.geom.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class ExportLink_Test { // 병합정보 추출 완료, 이제 방향 정해서 통합링크 구성하기
-  public static void test(String message, Map<String, ArrayList<SimpleFeature>> hashMap) {
-    System.out.println(message + ":" + hashMap.size());
-  }
-
+public class ExportLink_Delete { // 병합정보 추출 완료, 이제 방향 정해서 통합링크 구성하기
   public static ArrayList<SimpleFeature> searchLink(Long nodeA, Long nodeB, SimpleFeatureCollection featureCollection1) {
     SimpleFeatureIterator linkIterator = featureCollection1.features();
     ArrayList<SimpleFeature> ret = new ArrayList<>();
@@ -125,7 +124,6 @@ public class ExportLink_Test { // 병합정보 추출 완료, 이제 방향 정�
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    test("ㅎㅎ", hashMap);
     makeLink(hashMap, linkFile);
   }
 
