@@ -113,6 +113,7 @@ public class ChangeCoordinateLink {
         for (int i = 0; i < arr.size(); i++) {
           points[i] = arr.get(i);
         }
+
         LineString lineInfo = geometryFactory.createLineString(points);
 
         // 좌표계 변환

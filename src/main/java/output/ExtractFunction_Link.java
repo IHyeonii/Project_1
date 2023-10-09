@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
-public class ExtractFunction_Link {
+public class ExtractFunction_Link { // 통합링크 좌표를 못 읽어옴
   public static void main(String[] args) throws Exception {
     File nodeFile = new File("C:\\Users\\ihyeon\\Downloads\\ConvertCoord2\\ConvertCoord.shp");
     File linkFile = new File("C:\\Users\\ihyeon\\Downloads\\ConvertCoord2\\ConvertCoord2.shp");
@@ -77,20 +77,22 @@ public class ExtractFunction_Link {
         }
       }
       iterator.close(); // 노드 속성정보 및 도곽정보 추출 끝
+      System.out.println("nodeInfo" + nodeInfo.size());
 
-      // 이제 링크 읽어
+      /**
+       * 링크 읽기
+       * */
       SimpleFeatureCollection linkFeatureCollection = linkFeatureSource.getFeatures();
       SimpleFeatureIterator linkIterator = linkFeatureCollection.features();
 
       // 중복 노드와 일치하는 링크의 정보 저장 -> Key: 좌표 , Value: idxname+linkid (linkId)
       Map<String, ArrayList<Long>> duplicateLink = new HashMap<>(); // 중복 노드의 좌표, 링크id 2개 저장
 
-      Map<Long, ArrayList<Object>> linkInfo = new HashMap<>();
-//      // Key: 도곽 좌표, Value: 도곽 노드와 일치하는 링크의 fromNode, toNode
-//      Map<String, ArrayList<SimpleFeature>> duplicateLinkInfo = new HashMap<>();
-
       // 병합대상 아닌 링크 정보 저장소
       ArrayList<SimpleFeature> ret = new ArrayList<>();
+
+      // 병합대상인 링크 정보
+      Map<Long, ArrayList<Object>> linkToMerge = new HashMap<>();
 
       // 링크.shp 한 줄씩 읽기
       while (linkIterator.hasNext()) {
@@ -114,7 +116,7 @@ public class ExtractFunction_Link {
         // 링크정보 담을거야
         long linkId = Long.parseLong(idxname1 + linkid1);
 
-        // 도곽 id와 링크의 st가 일치하면
+        // 도곽 id와 링크의 st가 일치하면 -> 병합대상인 링크
         if (nodeInfo.containsKey(fromNode)) {
           Point point = lineString.getStartPoint();
           int x = (int) Math.round(point.getX());
@@ -129,6 +131,7 @@ public class ExtractFunction_Link {
             linkArr.add(linkId);
             duplicateLink.put(key, linkArr); // 새로운 키와 값을 생성
           }
+
         } else if (nodeInfo.containsKey(toNode)) {
           Point point = lineString.getEndPoint();
           int x = (int) Math.round(point.getX());
@@ -144,61 +147,59 @@ public class ExtractFunction_Link {
           }
         } else { // 도곽이 아닌 경우
           ret.add(next);
+          continue;
         }
 
-        // 도곽노드와 연결된 링크
-        ArrayList<Object> arr = new ArrayList();
-        arr.add(idxname);
-        arr.add(linkid);
-        arr.add(fromNode);
-        arr.add(toNode);
-        arr.add(lineString);
+        // 도곽과 연결된 링크 정보만 담기
+        ArrayList<Object> linkInfo = new ArrayList<>();
+        linkInfo.add(idxname);
+        linkInfo.add(linkid);
+        linkInfo.add(fromNode);
+        linkInfo.add(toNode);
+        linkInfo.add(lineString);
 
-        linkInfo.put(linkId, arr);
+        linkToMerge.put(linkId, linkInfo);
       }
-
       linkIterator.close();
 
       /**
        * 도곽 노드와 연결된 "링크 병합"
        * */
+
+      // coordinates 저장할게 필요해
       ArrayList<Coordinate[]> linkCoors = new ArrayList<>();
 
       for (String key : duplicateLink.keySet()) {
-        ArrayList<Long> arrNode = duplicateNode.get(key); // [41340000789, 41440000294] idxname + nodeid
-        ArrayList<Long> arr = duplicateLink.get(key); // [413400002366, 41440000172] 도곽의 좌표
-        if (arr.size() != 2) {
+        ArrayList<Long> arrNode = duplicateNode.get(key);
+        ArrayList<Long> arrLink = duplicateLink.get(key); // 둘 다 도곽의 좌표
+        if (arrLink.size() != 2) { // arrLink(좌표) 2개여야 도곽과 일치하는 링크 -> 895224,1475821
           continue;
         }
 
-        long link1 = arr.get(0); // [413400002366, 41440000172] => 413400002366
-        ArrayList<Object> arr1 = linkInfo.get(link1);
-        LineString ls1 = (LineString) arr1.get(4); // 링크의 형상
-        long link1snode = (long) arr1.get(2);
-        long link1enode = (long) arr1.get(3);
+        // 링크의 도곽 id 정보 추출
+        long link1 = arrLink.get(0); // 1번 좌표
+        System.out.println("link1= " + link1);
+        System.out.println("link1= " + arrLink.get(0).toString());
+        ArrayList<Object> arr = linkToMerge.get(link1);
+        LineString ls1 = (LineString) arr.get(4); // 형상
+        long link1snode = (long) arr.get(2);
+        long link1enode = (long) arr.get(3);
 
-        long link2 = arr.get(1);
-        ArrayList<Object> arr2 = linkInfo.get(link2);
-        LineString ls2 = (LineString) arr2.get(4); // 링크의 형상
-        long link2snode = (long) arr2.get(2);
-        long link2enode = (long) arr2.get(3);
-
-        /**
-         * 두개의 링크에 대해 형상정보를 가져왔으니까
-         * 방향 비교해서 새로운 LineString 생성하기
-         * */
+        long link2 = arrLink.get(1); // 2번 좌표
+        ArrayList<Object> arr1 = linkToMerge.get(link2);
+        LineString ls2 = (LineString) arr1.get(4); // 형상
+        long link2snode = (long) arr.get(2);
+        long link2enode = (long) arr.get(3);
 
         Long node1 = arrNode.get(0);
         Long node2 = arrNode.get(1);
 
-        // coordinates 저장할게 필요해
-
-
         // 방향이 같은 경우
         // arrNode == 라인1의 end && 라인2의 start 이거나 : link1 -> link2
         if ((node1.equals(link1enode) && node2.equals(link2snode)) || (node2.equals(link1enode) && node1.equals(link2snode))) {
-          Coordinate[] coordinates1 = ls1.getCoordinates(); // 링크1의 모든 절점
+          Coordinate[] coordinates1 = ls1.getCoordinates();// 링크1의 모든 절점
           Coordinate[] coordinates2 = ls2.getCoordinates();
+          System.out.println("" + coordinates1);
 
           // 방을 만들어 줬다.
           Coordinate[] coordinates = new Coordinate[coordinates1.length + coordinates2.length - 1]; // 전체 절점의 갯수
@@ -210,6 +211,7 @@ public class ExtractFunction_Link {
             coordinates[i++] = coordinates2[j];
           }
           linkCoors.add(coordinates);
+          System.out.println("coordinates=" + coordinates);
         }
 
         // arrNode == 라인1의 start 이거나 && 라인2의 end : link2 -> link1
@@ -231,7 +233,7 @@ public class ExtractFunction_Link {
 
         // 방향이 다른 경우
         // arrNode == 라인 1의 start && 라인2의 start
-        if ((node1.equals(link1snode) && node2.equals(link2snode)) || (node2.equals(link1snode) && node1.equals(link2snode))) {
+        if ((node1.equals(link1snode) && node1.equals(link2snode)) || (node2.equals(link1snode) && node2.equals(link2snode))) {
           LineString reverse = ls1.reverse();
           Coordinate[] reverseCoordinatesOfLink1 = reverse.getCoordinates();
           Coordinate[] ls2Coordinates = ls2.getCoordinates(); // 링크의 절점 다 가져와서
@@ -249,7 +251,7 @@ public class ExtractFunction_Link {
         }
 
         // arrNode == 라인 1의 end && 라인2의 end
-        if ((node1.equals(link1enode) && node2.equals(link2enode)) || (node2.equals(link1enode) && node1.equals(link2enode))) {
+        if ((node1.equals(link1enode) && node1.equals(link2enode)) || (node2.equals(link1enode) && node2.equals(link2enode))) {
           LineString reverse = ls1.reverse();
           Coordinate[] reverseCoordinatesOfLink1 = reverse.getCoordinates();
           Coordinate[] ls2Coordinates = ls2.getCoordinates(); // 링크의 절점 다 가져와서
@@ -265,20 +267,21 @@ public class ExtractFunction_Link {
           linkCoors.add(coordinates);
         }
       }
-//      System.out.println("linkCoors= " + linkCoors.size());
+      System.out.println("linkCoors= " + linkCoors.size());
 //      System.out.println("linkCoors= " + Arrays.toString(linkCoors.get(0)));
-      exportNodeShp(ret);
-    }
-    catch(IOException e){
+//      System.out.println("ret: " +ret.size());
+      System.out.println("mergeLink: " + linkToMerge.size());
+      exportNodeShp(ret, linkCoors, linkToMerge);
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
+
   }
 
   // 5. output shapefile
-  // , ArrayList<Coordinate[]> linkCoors, Map<Long, ArrayList<Object>> linkInfo
-  static void exportNodeShp (ArrayList<SimpleFeature> ret) throws Exception { // 여긴 받을 준비
+  static void exportNodeShp(ArrayList<SimpleFeature> ret, ArrayList<Coordinate[]> linkCoors, Map<Long, ArrayList<Object>> linkToMerge) throws Exception { // 여긴 받을 준비
     // 새로운 shp 파일 저장경로 및 파일명 설정
-    File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\output\\linkTest.shp");
+    File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\output\\IncludeLink2.shp");
 
     // SimpleFeatureType 생성 =  CSV 파일에서 읽어온 데이터를 설명, 속성 유형과 구조 정의
     final SimpleFeatureType TYPE =
@@ -319,6 +322,35 @@ public class ExtractFunction_Link {
       features.add(feature);
     }
 
+    // 병합링크 추가
+    Iterator<Coordinate[]> iterator = linkCoors.iterator();
+    while (iterator.hasNext()) {
+      Coordinate[] next = iterator.next();
+
+      Set<Map.Entry<Long, ArrayList<Object>>> entries = linkToMerge.entrySet();
+      for (Map.Entry<Long, ArrayList<Object>> entrySet : entries) {
+        SimpleFeature value = (SimpleFeature) entrySet.getValue();
+
+        Integer idxname = (Integer) value.getAttribute("idxname");
+        Integer linkid = (Integer) value.getAttribute("linkid");
+        Integer stndid = (Integer) value.getAttribute("fromNode");
+        Integer edndid = (Integer) value.getAttribute("toNode");
+
+        LineString mergeLineString = geometryFactory.createLineString(next);
+
+        featureBuilder.add(mergeLineString);
+        featureBuilder.add(idxname);
+        featureBuilder.add(linkid);
+        featureBuilder.add(stndid);
+        featureBuilder.add(edndid);
+
+        SimpleFeature feature = featureBuilder.buildFeature(null);
+        features.add(feature);
+      }
+    }
+
+
+
     ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
 
     Map<String, Serializable> params = new HashMap<>();
@@ -357,3 +389,4 @@ public class ExtractFunction_Link {
     }
   }
 }
+
