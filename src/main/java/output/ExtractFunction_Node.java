@@ -57,7 +57,7 @@ public class ExtractFunction_Node { // 좌표변환한 노드shp 파일 -> 병�
   // 5. output shapefile
   static void exportNodeShp (ArrayList<SimpleFeature> ret) throws Exception { // 여긴 받을 준비
     // 새로운 shp 파일 저장경로 및 파일명 설정
-    File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\output\\nodeOutput.shp");
+    File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\output\\DeleteDuplicateNode.shp");
 
     // SimpleFeatureType 생성 =  CSV 파일에서 읽어온 데이터를 설명, 속성 유형과 구조 정의
     final SimpleFeatureType TYPE =

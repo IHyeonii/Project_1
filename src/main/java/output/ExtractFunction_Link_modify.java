@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
-public class ExtractFunction_LinkUpdate {
+public class ExtractFunction_Link_modify { // 병합대상인 링크파일만 추출해봐, 통합링크 좌표 수정완료 ^^....ㅅㅂ
   public static void main(String[] args) throws Exception {
     File nodeFile = new File("C:\\Users\\ihyeon\\Downloads\\ConvertCoord2\\ConvertCoord.shp");
     File linkFile = new File("C:\\Users\\ihyeon\\Downloads\\ConvertCoord2\\ConvertCoord2.shp");
@@ -110,6 +110,9 @@ public class ExtractFunction_LinkUpdate {
         String stndid1 = Integer.toString(stndid);
         String edndid1 = Integer.toString(edndid);
 
+        Point startPoint = lineString.getStartPoint();
+        Point endPoint = lineString.getEndPoint();
+
         long fromNode = Long.parseLong(idxname1 + stndid1);
         long toNode = Long.parseLong(idxname1 + edndid1);
         long linkId = Long.parseLong(idxname1 + linkid1);
@@ -190,8 +193,8 @@ public class ExtractFunction_LinkUpdate {
         Long node1 = arrNode.get(0);
         Long node2 = arrNode.get(1);
 
-        // 방향이 같은 경우
-        // arrNode == 라인1의 end && 라인2의 start 이거나 : link1 -> link2
+
+        // arrNode == 라인 // 방향이 같은 경우1의 end && 라인2의 start 이거나 : link1 -> link2
         if ((node1.equals(link1enode) && node2.equals(link2snode)) || (node2.equals(link1enode) && node1.equals(link2snode))) {
           Coordinate[] coordinates1 = ls1.getCoordinates();// 링크1의 모든 절점
           Coordinate[] coordinates2 = ls2.getCoordinates();
@@ -227,7 +230,7 @@ public class ExtractFunction_LinkUpdate {
 
         // 방향이 다른 경우
         // arrNode == 라인 1의 start && 라인2의 start
-        if ((node1.equals(link1snode) && node2.equals(link2snode)) || (node2.equals(link1snode) && node2.equals(link2snode))) {
+        if ((node1.equals(link1snode) && node2.equals(link2snode)) || (node2.equals(link1snode) && node1.equals(link2snode))) {
           LineString reverse = ls1.reverse();
           Coordinate[] reverseCoordinatesOfLink1 = reverse.getCoordinates();
           Coordinate[] ls2Coordinates = ls2.getCoordinates(); // 링크의 절점 다 가져와서
@@ -244,7 +247,7 @@ public class ExtractFunction_LinkUpdate {
         }
 
         // arrNode == 라인 1의 end && 라인2의 end
-        if ((node1.equals(link1enode) && node2.equals(link2enode)) || (node2.equals(link1enode) && node2.equals(link2enode))) {
+        if ((node1.equals(link1enode) && node2.equals(link2enode)) || (node2.equals(link1enode) && node1.equals(link2enode))) {
           LineString reverse = ls1.reverse();
           Coordinate[] reverseCoordinatesOfLink1 = reverse.getCoordinates();
           Coordinate[] ls2Coordinates = ls2.getCoordinates(); // 링크의 절점 다 가져와서
@@ -261,11 +264,8 @@ public class ExtractFunction_LinkUpdate {
         }
       }
 
-
       System.out.println("linkCoors= " + linkCoors.size());
-//      System.out.println("linkCoors= " + Arrays.toString(linkCoors.get(0)));
-//      System.out.println("ret: " +ret.size());
-      exportNodeShp(ret, linkCoors, linkInfo);
+//      exportNodeShp(ret, linkCoors, linkInfo);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -274,7 +274,7 @@ public class ExtractFunction_LinkUpdate {
   // 5. output shapefile
   static void exportNodeShp(ArrayList<SimpleFeature> ret, ArrayList<Coordinate[]> linkCoors, Map<Long, ArrayList<Object>> linkInfo) throws Exception { // 여긴 받을 준비
     // 새로운 shp 파일 저장경로 및 파일명 설정
-    File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\output\\IncludeLink2.shp");
+    File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\output\\linkTestFile.shp");
 
     // SimpleFeatureType 생성 =  CSV 파일에서 읽어온 데이터를 설명, 속성 유형과 구조 정의
     final SimpleFeatureType TYPE =
@@ -287,12 +287,10 @@ public class ExtractFunction_LinkUpdate {
     System.out.println("TYPE:" + TYPE);
 
     List<SimpleFeature> features = new ArrayList<>();
-    List<SimpleFeature> mergeFeature = new ArrayList<>();
-
     GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
 
     SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(TYPE);
-    SimpleFeatureBuilder mergeFeatureBuilder = new SimpleFeatureBuilder(TYPE);
+
 
     for (SimpleFeature originalLink : ret) {
       MultiLineString multiLineString = (MultiLineString) originalLink.getAttribute(0);
@@ -332,53 +330,53 @@ public class ExtractFunction_LinkUpdate {
         Integer edndid = (Integer) value.getAttribute("toNode");
 
         LineString mergeLineString = geometryFactory.createLineString(next);
-
-        mergeFeatureBuilder.add(mergeLineString);
-        mergeFeatureBuilder.add(idxname);
-        mergeFeatureBuilder.add(linkid);
-        mergeFeatureBuilder.add(stndid);
-        mergeFeatureBuilder.add(edndid);
-
-        SimpleFeature feature = mergeFeatureBuilder.buildFeature(null);
-        mergeFeature.add(feature);
+//
+//        mergeFeatureBuilder.add(mergeLineString);
+//        mergeFeatureBuilder.add(idxname);
+//        mergeFeatureBuilder.add(linkid);
+//        mergeFeatureBuilder.add(stndid);
+//        mergeFeatureBuilder.add(edndid);
+//
+//        SimpleFeature feature = mergeFeatureBuilder.buildFeature(null);
+//        mergeFeature.add(feature);
+//      }
       }
-    }
-    ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
+      ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
 
-    Map<String, Serializable> params = new HashMap<>();
-    params.put("url", newFile.toURI().toURL());
-    params.put("create spatial index", Boolean.TRUE);
+      Map<String, Serializable> params = new HashMap<>();
+      params.put("url", newFile.toURI().toURL());
+      params.put("create spatial index", Boolean.TRUE);
 
-    DataStore newDataStore = dataStoreFactory.createNewDataStore(params);
-    newDataStore.createSchema(TYPE); // TYPE -> 파일 내용 설명하는 템플릿으로 사용
+      DataStore newDataStore = dataStoreFactory.createNewDataStore(params);
+      newDataStore.createSchema(TYPE); // TYPE -> 파일 내용 설명하는 템플릿으로 사용
 
-    // ShapeFile에 feature data 작성
-    Transaction transaction = new DefaultTransaction("create");
+      // ShapeFile에 feature data 작성
+      Transaction transaction = new DefaultTransaction("create");
 
-    String typeName = newDataStore.getTypeNames()[0];
-    SimpleFeatureSource featureSource = newDataStore.getFeatureSource(typeName);
-    SimpleFeatureType SHAPE_TYPE = featureSource.getSchema();
+      String typeName = newDataStore.getTypeNames()[0];
+      SimpleFeatureSource featureSource = newDataStore.getFeatureSource(typeName);
+      SimpleFeatureType SHAPE_TYPE = featureSource.getSchema();
 
-    System.out.println("SHAPE:" + SHAPE_TYPE);
+      System.out.println("SHAPE:" + SHAPE_TYPE);
 
-    if (featureSource instanceof SimpleFeatureStore) {
-      SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
-      SimpleFeatureCollection collection = new ListFeatureCollection(TYPE, features);
-      featureStore.setTransaction(transaction);
-      try {
-        featureStore.addFeatures(collection);
-        transaction.commit();
-      } catch (Exception problem) {
-        problem.printStackTrace();
-        transaction.rollback();
-      } finally {
-        transaction.close();
+      if (featureSource instanceof SimpleFeatureStore) {
+        SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
+        SimpleFeatureCollection collection = new ListFeatureCollection(TYPE, features);
+        featureStore.setTransaction(transaction);
+        try {
+          featureStore.addFeatures(collection);
+          transaction.commit();
+        } catch (Exception problem) {
+          problem.printStackTrace();
+          transaction.rollback();
+        } finally {
+          transaction.close();
+        }
+        System.exit(0); // success!
+      } else {
+        System.out.println(typeName + " does not support read/write access");
+        System.exit(1);
       }
-      System.exit(0); // success!
-    } else {
-      System.out.println(typeName + " does not support read/write access");
-      System.exit(1);
     }
   }
 }
-

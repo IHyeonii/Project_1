@@ -193,7 +193,7 @@ public class ChangeCoordinateNode {
   }
   // 5. output shapefile
   private static File getNewShapeFile(File csvFile) { //getNewShapeFile 호출될 때 매개변수로 전달되는 파일
-    File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\ConvertNode2.shp");
+    File newFile = new File("C:\\Users\\ihyeon\\Desktop\\FirstTask\\output\\ConvertNode.shp");
 
     // 3. 만약 새로운 파일이 원본 CSV 파일과 동일한 경우 오류를 출력하고 프로그램을 종료합니다.
     if (newFile.equals(csvFile)) {
